@@ -78,6 +78,29 @@ const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 /** @type {HTMLElement} Botón de reinicio del juego. */
 const restartBtn = document.getElementById('restart-btn');
+/** @type {HTMLElement} Botón para alternar entre tema oscuro y claro. */
+const themeToggleBtn = document.getElementById('theme-toggle');
+
+/**
+ * Color de la cuadrícula del tablero según el tema activo.
+ * @type {Object<string, string>}
+ */
+const GRID_COLORS = { dark: '#22222e', light: '#c8c8d0' };
+
+/** @type {string} Tema actual ('dark' o 'light'); por defecto 'dark' si no hay preferencia guardada. */
+let theme = localStorage.getItem('tetris-theme') || 'dark';
+
+/**
+ * Aplica el tema dado al documento, lo persiste en localStorage y repinta el tablero.
+ * @param {string} newTheme - 'dark' o 'light'.
+ */
+function applyTheme(newTheme) {
+  theme = newTheme;
+  document.body.dataset.theme = theme;
+  localStorage.setItem('tetris-theme', theme);
+  themeToggleBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
+  if (typeof board !== 'undefined') draw();
+}
 
 /**
  * Estado global del juego. Todas estas variables son reinicializadas por `init()`.
@@ -321,7 +344,7 @@ function drawBlock(context, x, y, colorIndex, size, alpha) {
  * Dibuja las líneas de la cuadrícula del tablero sobre el canvas principal.
  */
 function drawGrid() {
-  ctx.strokeStyle = '#22222e';
+  ctx.strokeStyle = GRID_COLORS[theme];
   ctx.lineWidth = 0.5;
   for (let c = 1; c < COLS; c++) {
     ctx.beginPath();
@@ -486,4 +509,8 @@ document.addEventListener('keydown', e => {
 /** Reinicia el juego al hacer clic en el botón de reinicio del overlay. */
 restartBtn.addEventListener('click', init);
 
+/** Alterna entre tema oscuro y claro al hacer clic en el botón de tema. */
+themeToggleBtn.addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
+
+applyTheme(theme);
 init();
