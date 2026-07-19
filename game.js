@@ -152,12 +152,37 @@ function rotateCW(shape) {
 }
 
 /**
+ * Estados fijos de la pieza I (horizontal y vertical). La rotación matricial genérica
+ * (`rotateCW`) hace que la celda ocupada "oscile" dentro de la caja 4×4 entre 4 estados
+ * distintos (fila 1 / fila 2, columna 2 / columna 1), lo que cerca de los bordes obliga a
+ * wall kicks de hasta 2 columnas y produce un salto visual brusco. Como la pieza I solo
+ * tiene 2 orientaciones visualmente distintas, se alterna directamente entre estos dos
+ * estados fijos en vez de derivarlos en runtime.
+ * @type {number[][]}
+ */
+const I_HORIZONTAL = [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]];
+/** @type {number[][]} */
+const I_VERTICAL = [[0,0,1,0],[0,0,1,0],[0,0,1,0],[0,0,1,0]];
+
+/**
+ * Devuelve la otra orientación fija de la pieza I (vertical si venía horizontal, o viceversa).
+ * @param {number[][]} shape - Forma actual de la pieza I.
+ * @returns {number[][]} Nueva matriz con la otra orientación.
+ */
+function rotateIPiece(shape) {
+  const vertical = shape[0].some(v => v !== 0);
+  return (vertical ? I_HORIZONTAL : I_VERTICAL).map(row => [...row]);
+}
+
+/**
  * Intenta rotar la pieza actual 90° en sentido horario aplicando wall kicks.
- * Prueba desplazamientos horizontales [0, -1, 1, -2, 2] hasta encontrar una posición
- * válida; si ninguno funciona, la rotación se cancela silenciosamente.
+ * La pieza I usa `rotateIPiece` (2 estados fijos) en vez de `rotateCW` para evitar el
+ * "bamboleo" de su caja 4×4 cerca de los bordes; el resto de piezas sigue usando la
+ * rotación matricial genérica. Prueba desplazamientos horizontales [0, -1, 1, -2, 2] hasta
+ * encontrar una posición válida; si ninguno funciona, la rotación se cancela silenciosamente.
  */
 function tryRotate() {
-  const rotated = rotateCW(current.shape);
+  const rotated = current.type === 1 ? rotateIPiece(current.shape) : rotateCW(current.shape);
   const kicks = [0, -1, 1, -2, 2];
   for (const kick of kicks) {
     if (!collide(rotated, current.x + kick, current.y)) {
