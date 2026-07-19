@@ -448,7 +448,9 @@ function loop(timestamp) {
     }
   }
   draw();
-  animId = requestAnimationFrame(loop);
+  if (!gameOver && !paused) {
+    animId = requestAnimationFrame(loop);
+  }
 }
 
 /**
